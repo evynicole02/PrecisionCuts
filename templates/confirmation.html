@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="confirmation-title">Appointment Confirmed</h2>
+
+<div class="confirmation-box">
+    <p><strong>Name:</strong> {{ name }}</p>
+    <p><strong>Phone:</strong> {{ phone }}</p>
+    <p><strong>Time:</strong> {{ time }}</p>
+</div>
+
+<a href="/book" class="book-another-btn">Book Another</a>
+
+{% endblock %}
