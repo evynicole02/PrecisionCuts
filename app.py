@@ -6,23 +6,22 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, session
 
 # -------------------------
-# CLOUD DATABASE CONNECTION (Railway)
+# GET DB CONNECTION (Lazy Connect)
 # -------------------------
-db = mysql.connector.connect(
-    host=os.environ.get("DB_HOST"),
-    port=os.environ.get("DB_PORT"),
-    user=os.environ.get("DB_USER"),
-    password=os.environ.get("DB_PASS"),
-    database=os.environ.get("DB_NAME")
-)
-
-cursor = db.cursor(dictionary=True)
+def get_db():
+    return mysql.connector.connect(
+        host=os.environ.get("DB_HOST"),
+        port=os.environ.get("DB_PORT"),
+        user=os.environ.get("DB_USER"),
+        password=os.environ.get("DB_PASS"),
+        database=os.environ.get("DB_NAME")
+    )
 
 # -------------------------
 # EMAIL CONFIG (iCloud)
 # -------------------------
 OWNER_EMAIL = "tristianrivera@icloud.com"
-OWNER_APP_PASSWORD = "isgk-upxi-bpef-gpuw"  # from appleid.apple.com
+OWNER_APP_PASSWORD = "isgk-upxi-bpef-gpuw"
 
 def notify_owner(name, phone, time):
     msg = MIMEText(
@@ -69,6 +68,9 @@ def home():
 # -------------------------
 @app.route("/book", methods=["GET", "POST"])
 def book():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
     if request.method == "POST":
         name = request.form["name"]
         phone = request.form["phone"]
@@ -111,6 +113,9 @@ def book():
 # -------------------------
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
@@ -136,6 +141,9 @@ def admin_login():
 def admin_dashboard():
     if "admin" not in session:
         return redirect("/admin/login")
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
 
     cursor.execute("""
         SELECT * FROM appointments
@@ -177,6 +185,9 @@ def add_availability():
     if "admin" not in session:
         return redirect("/admin/login")
 
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
     date = request.form["date"]
     time = request.form["time"]
 
@@ -196,6 +207,9 @@ def delete_availability(id):
     if "admin" not in session:
         return redirect("/admin/login")
 
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
     cursor.execute("DELETE FROM availability WHERE id=%s", (id,))
     db.commit()
 
@@ -209,6 +223,9 @@ def approve_appt(id):
     if "admin" not in session:
         return redirect("/admin/login")
 
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
     cursor.execute("UPDATE appointments SET status='approved' WHERE id=%s", (id,))
     db.commit()
 
@@ -221,6 +238,9 @@ def approve_appt(id):
 def cancel_appt(id):
     if "admin" not in session:
         return redirect("/admin/login")
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
 
     cursor.execute("UPDATE appointments SET status='cancelled' WHERE id=%s", (id,))
     db.commit()
