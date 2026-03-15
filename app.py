@@ -1,8 +1,22 @@
+import os
+import mysql.connector
 import smtplib
 from email.mime.text import MIMEText
-import mysql.connector
 from datetime import datetime
-from flask import Flask, render_template, request, session, redirect, url_for
+from flask import Flask, render_template, request, redirect, session
+
+# -------------------------
+# CLOUD DATABASE CONNECTION (Railway)
+# -------------------------
+db = mysql.connector.connect(
+    host=os.environ.get("DB_HOST"),
+    port=os.environ.get("DB_PORT"),
+    user=os.environ.get("DB_USER"),
+    password=os.environ.get("DB_PASS"),
+    database=os.environ.get("DB_NAME")
+)
+
+cursor = db.cursor(dictionary=True)
 
 # -------------------------
 # EMAIL CONFIG (iCloud)
@@ -25,18 +39,6 @@ def notify_owner(name, phone, time):
         server.starttls()
         server.login(OWNER_EMAIL, OWNER_APP_PASSWORD)
         server.send_message(msg)
-
-# -------------------------
-# MySQL CONNECTION
-# -------------------------
-db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="Chunky6122.",
-    database="booking_system"
-)
-
-cursor = db.cursor(dictionary=True)
 
 # -------------------------
 # FORMAT DATE/TIME
@@ -135,7 +137,6 @@ def admin_dashboard():
     if "admin" not in session:
         return redirect("/admin/login")
 
-    # UPCOMING (future + not cancelled)
     cursor.execute("""
         SELECT * FROM appointments
         WHERE status != 'cancelled' AND datetime > NOW()
@@ -143,7 +144,6 @@ def admin_dashboard():
     """)
     upcoming = cursor.fetchall()
 
-    # PAST (already happened)
     cursor.execute("""
         SELECT * FROM appointments
         WHERE datetime <= NOW()
@@ -151,7 +151,6 @@ def admin_dashboard():
     """)
     past = cursor.fetchall()
 
-    # CANCELLED
     cursor.execute("""
         SELECT * FROM appointments
         WHERE status = 'cancelled'
