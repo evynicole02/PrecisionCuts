@@ -14,7 +14,8 @@ def get_db():
         port=os.environ.get("DB_PORT"),
         user=os.environ.get("DB_USER"),
         password=os.environ.get("DB_PASS"),
-        database=os.environ.get("DB_NAME")
+        database=os.environ.get("DB_NAME"),
+        ssl_ca="/etc/ssl/certs/ca-certificates.crt"
     )
 
 # -------------------------
@@ -66,7 +67,6 @@ def home():
 # -------------------------
 # BOOKING PAGE
 # -------------------------
-print("BOOK ROUTE HIT")
 @app.route("/book", methods=["GET", "POST"])
 def book():
     db = get_db()
