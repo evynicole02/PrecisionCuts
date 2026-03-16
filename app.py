@@ -66,6 +66,7 @@ def home():
 # -------------------------
 # BOOKING PAGE
 # -------------------------
+print("BOOK ROUTE HIT")
 @app.route("/book", methods=["GET", "POST"])
 def book():
     db = get_db()
