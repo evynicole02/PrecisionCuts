@@ -6,7 +6,7 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, session
 
 # -------------------------
-# GET DB CONNECTION (Lazy Connect)
+# GET DB CONNECTION (Render-safe)
 # -------------------------
 def get_db():
     return mysql.connector.connect(
@@ -15,7 +15,7 @@ def get_db():
         user=os.environ.get("DB_USER"),
         password=os.environ.get("DB_PASS"),
         database=os.environ.get("DB_NAME"),
-        ssl_ca="/etc/ssl/certs/ca-certificates.crt"
+        ssl_disabled=True   # <--- FIX: prevents Render from hanging
     )
 
 # -------------------------
@@ -275,8 +275,6 @@ def admin_logout():
 # -------------------------
 # RUN SERVER (Render requires PORT binding)
 # -------------------------
-import os
-
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
