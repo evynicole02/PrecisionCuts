@@ -65,7 +65,7 @@ def home():
     return render_template("home.html", title="Home")
 
 # -------------------------
-# BOOKING PAGE
+# BOOKING PAGE (Render‑safe)
 # -------------------------
 @app.route("/book", methods=["GET", "POST"])
 def book():
@@ -80,22 +80,37 @@ def book():
 
         time = format_casual_datetime(raw_time)
 
+        # Prevent double booking
         cursor.execute("SELECT * FROM appointments WHERE datetime=%s", (raw_time,))
         existing = cursor.fetchone()
         if existing:
             return "This time slot is already booked."
 
+        # Insert appointment
         cursor.execute(
             "INSERT INTO appointments (name, phone, datetime, status) VALUES (%s, %s, %s, %s)",
             (name, phone, raw_time, "pending")
         )
         db.commit()
 
+        # Remove slot from availability
         cursor.execute("DELETE FROM availability WHERE id=%s", (slot_id,))
         db.commit()
 
-        notify_owner(name, phone, time)
+        # -------------------------
+        # SAFE NOTIFICATION (won't crash worker)
+        # -------------------------
+        import threading
 
+        def safe_notify():
+            try:
+                notify_owner(name, phone, time)
+            except Exception as e:
+                print("Notification failed:", e)
+
+        threading.Thread(target=safe_notify).start()
+
+        # Confirmation page
         return render_template(
             "confirmation.html",
             title="Confirmed",
@@ -104,6 +119,7 @@ def book():
             time=time
         )
 
+    # GET request: show available times
     cursor.execute("SELECT * FROM availability ORDER BY date, time")
     available_times = cursor.fetchall()
 
