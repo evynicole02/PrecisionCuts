@@ -67,6 +67,7 @@ def home():
 # -------------------------
 # BOOKING PAGE (Render‑safe)
 # -------------------------
+# threading.Thread(target=safe_notify).start()
 @app.route("/book", methods=["GET", "POST"])
 def book():
     db = get_db()
